@@ -20,8 +20,11 @@ class HashTable:
     Implement this.
     """
 
-    def __init__(self, capacity):
+    def __init__(self, capacity = MIN_CAPACITY):
         # Your code here
+        self.capacity = capacity
+        self.the_list = [None] * capacity
+
 
 
     def get_num_slots(self):
@@ -35,6 +38,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.the_list)
+        
 
 
     def get_load_factor(self):
@@ -44,6 +49,16 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        count = 0
+        for x in self.the_list:
+            if x is not None:
+                count +=1
+                curr_x = x
+                while curr_x.next is not None:
+                    count += 1
+                    curr_x = curr_x.next
+        return count/len(self.the_list)
+
 
 
     def fnv1(self, key):
@@ -54,6 +69,13 @@ class HashTable:
         """
 
         # Your code here
+        offset = 14695981039346656037
+        prime = 1099511628211
+        key_bytes = key.encode()
+        for byte in key_bytes:
+            offset *= prime
+            offset = offset ^ byte
+        return offset % self.capacity
 
 
     def djb2(self, key):
@@ -70,8 +92,8 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) % self.capacity
+        # return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -82,6 +104,26 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        
+        my_hash = self.fnv1(key)
+        my_entry = HashTableEntry(key, value)
+        # self.the_list[my_hash] = my_entry
+        if self.the_list[my_hash] is not None:
+            curr_place = self.the_list[my_hash]
+            while curr_place is not None:
+                if curr_place.key == key:
+                    # print(curr_place.key,key)
+                    curr_place.value = value
+                    print(curr_place.value,curr_place.key)
+                    return
+                if curr_place.next is not None:
+                    curr_place = curr_place.next
+                else:
+                    curr_place.next = my_entry
+            curr_place.next = my_entry
+
+        else:
+            self.the_list[my_hash] = my_entry
 
 
     def delete(self, key):
@@ -93,6 +135,27 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # itterate through the table
+        # if found then replace at [i] with None
+        # if not found return not found
+        my_hash = self.fnv1(key)
+        if self.the_list[my_hash]:
+            curr_place = self.the_list[my_hash]
+            while curr_place.key != key:
+                if curr_place.next is not None:
+                    curr_place = curr_place.next
+                else:
+                    return
+            curr_place.value = None
+            if curr_place.key == key:
+                if curr_place.next is not None:
+                    self.the_list[my_hash] = curr_place.next
+                else:
+                    self.the_list[my_hash] = None
+
+
+        else:
+            print("error")
 
 
     def get(self, key):
@@ -104,6 +167,22 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # itterate through the table
+        # if found return info at [i]
+        # if not found return not found
+        my_hash = self.fnv1(key)
+        if self.the_list[my_hash] is not None:
+            curr_place = self.the_list[my_hash]
+            while curr_place.key != key:
+                if curr_place.next is not None:
+                    curr_place = curr_place.next
+                else:
+                    return
+
+            return curr_place.value
+            
+        else:
+            print("error")
 
 
     def resize(self, new_capacity):
@@ -114,6 +193,24 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        # hold on to the what is already in the list
+        # set the list to None * new_capacity
+        # set the list cap to the new cap
+        # loop through the old list and check if item is not NONE
+        # if not None add to new storage and save the value of that item.next to current
+        # loop through while current still true add current to new storage and change current to current.next
+        old_list = self.the_list
+        self.the_list = [None] * new_capacity
+        self.capacity = new_capacity
+        for i in old_list:
+            if i is not None:
+                self.the_list[self.fnv1(i.key)] = i
+                curr_place = i.next
+                while curr_place is not None:
+                    self.the_list[self.fnv1(curr_place.key)] = curr_place
+                    curr_place = curr_place.next
+
+
 
 
 
